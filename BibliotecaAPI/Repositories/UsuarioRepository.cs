@@ -78,15 +78,15 @@ namespace BibliotecaAPI.Repositories
                 {
                     var sql = @"              
                 SELECT
-                    u.ID AS UsuarioID,
+                    u.ID,
                     u.Nombre,
                     u.TipoUsuario,
                     p.PrestamoISBN,
                     p.PrestamoUsuarioID,
-                    l.ISBN as LibroISBN,
-                    l.Titulo AS LibroTitulo,
-                    l.Autor AS LibroAutor,
-                    l.isAvailable AS LibroIsAvailable
+                    l.ISBN,
+                    l.Titulo,
+                    l.Autor,
+                    l.isAvailable
                 FROM
                     Usuarios u
                 LEFT JOIN
@@ -99,7 +99,7 @@ namespace BibliotecaAPI.Repositories
                     p.PrestamoISBN = l.ISBN";
                     var usuarioDictionary = new Dictionary<int, Usuario>();
                     //var usuario = connection.Query<Usuario, List<Prestamo>, Usuario>(
-                    var usuario = connection.Query<Usuario, Prestamo, Libro, Usuario>(
+                    var usuarios = connection.Query<Usuario, Prestamo, Libro, Usuario>(
                         sql,
                         (usuario, prestamo, libro) =>
                         {
@@ -111,14 +111,21 @@ namespace BibliotecaAPI.Repositories
                             }
                             if (prestamo != null)
                             {
+                                if (libro != null)
+                                {
+                                    prestamo.Libro = libro; // Assign Libro to Prestamo
+                                }
+                                currentUsuario.Prestamos.Add(prestamo);
                                 //usuario.Prestamos = prestamo;
                                 //return usuario;
+                                /*
                                 prestamo.Libro = libro;
                                 currentUsuario.Prestamos.Add(prestamo);
+                                 */
                             }
                             return currentUsuario;
                         },
-                        splitOn: "PrestamoISBN, LibroISBN"
+                        splitOn: "PrestamoISBN, ISBN"
                         );
                     return usuarioDictionary.Values;
                     //return usuario;

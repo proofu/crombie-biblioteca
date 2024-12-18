@@ -30,6 +30,16 @@ namespace BibliotecaAPI.Services
             return _libroRepository.GetLibroByISBN(isbn);
         }
 
+        public bool PostLibro(Libro libro)
+        {
+            return _libroRepository.InsertLibro(libro);
+        }
+
+        public bool UpdateLibro(Libro libro)
+        {
+            return _libroRepository.UpdateLibro(libro);
+        }
+
         ///
 
         /*

@@ -42,6 +42,38 @@ namespace BibliotecaAPI.Controllers
             }
             return Ok(libro);
         }
+        // POST api/<Libro>
+        [HttpPost]
+        public IActionResult Post([FromBody] Libro libro)
+        {
+            
+            if (libro == null)
+            {
+                return BadRequest("datos de libro inválido");
+            }
+            var inserted = _LibroService.PostLibro(libro);
+            if (inserted)
+            {
+                return Ok("libro ingresado.");
+            } else
+            {
+                return BadRequest("hubo un problema al insertar libro");
+            }
+
+        }
+
+        // PUT api/<Libro>/5
+        [HttpPut("{isbn}")]
+        public IActionResult Put([FromBody] Libro libro)
+        {
+            bool libroModified = _LibroService.UpdateLibro(libro);
+            if (libroModified == false)
+            {
+                return NotFound();
+            }
+            return Ok();
+        }
+
         /*
         // POST api/<Libro>
         [HttpPost]
