@@ -74,6 +74,18 @@ namespace BibliotecaAPI.Controllers
             return Ok();
         }
 
+        // DELETE api/<Libro>/5
+        [HttpDelete("{isbn}")]
+        public IActionResult Delete(string isbn)
+        {
+            bool deleted = _LibroService.DeleteLibro(isbn);
+            if (!deleted)
+            {
+                return NotFound();
+            }
+            return Ok("libro borrado");
+        }
+
         /*
         // POST api/<Libro>
         [HttpPost]

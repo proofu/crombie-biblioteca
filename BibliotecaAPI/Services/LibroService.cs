@@ -40,6 +40,11 @@ namespace BibliotecaAPI.Services
             return _libroRepository.UpdateLibro(libro);
         }
 
+        public bool DeleteLibro(string isbn)
+        {
+            return _libroRepository.DeleteLibro(isbn);
+        }
+
         ///
 
         /*

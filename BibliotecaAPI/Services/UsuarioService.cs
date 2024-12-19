@@ -47,9 +47,14 @@ namespace BibliotecaAPI.Services
         {
             return _repository.InsertUsuario(usuario);
         }
+        public bool DeleteUsuario(int id) { 
+            return _repository.DeleteUsuario(id);
+        }
 
 
         //____________________
+
+        /*
         public string PrestarMaterial(Usuario usuario)
         {
             return usuario.PrestarMaterial();
@@ -58,6 +63,7 @@ namespace BibliotecaAPI.Services
         {
             return usuario.DevolverMaterial();
         }
+        */
 
         /*
         public List<Usuario> GetAll()

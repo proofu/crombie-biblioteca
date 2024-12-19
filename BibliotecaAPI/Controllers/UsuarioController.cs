@@ -70,6 +70,18 @@ namespace BibliotecaAPI.Controllers
             return Ok(userFound);
              
         }
+        // DELETE api/<UsuarioController>/5
+        [HttpDelete("{id}")]
+        public IActionResult Delete(int id)
+        {
+            if (_UsuarioService.DeleteUsuario(id))
+                return Ok("usuario eliminado");
+            else
+            {
+                return BadRequest();
+            }
+
+        }
 
 
         /*

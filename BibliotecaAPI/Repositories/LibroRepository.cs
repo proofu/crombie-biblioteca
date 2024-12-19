@@ -4,7 +4,7 @@ using Microsoft.Data.SqlClient;
 
 namespace BibliotecaAPI.Repositories
 {
-    public class LibroRepository 
+    public class LibroRepository
     {
         private readonly DapperContext _context;
 
@@ -39,8 +39,7 @@ namespace BibliotecaAPI.Repositories
                     return Enumerable.Empty<Libro>();
                 }
                 catch (Exception ex)
-                {
-                    //_logger.LogError(ex, "Error inesperado en GetAllProducto");
+                {                  
                     Console.WriteLine($"error inesperado en getallproducto:  {ex}");
                     return Enumerable.Empty<Libro>();
                 }
@@ -64,10 +63,10 @@ namespace BibliotecaAPI.Repositories
                 WHERE 
                     ISBN = @ISBN";
 
-                    // Execute query and map result to the Libro object
+                    
                     var libro = connection.QuerySingleOrDefault<Libro>(sql, new { ISBN = isbn });
 
-                    return libro; // Return the libro object or null if not found
+                    return libro; 
                 }
                 catch (SqlException sqlEx)
                 {
@@ -101,7 +100,7 @@ namespace BibliotecaAPI.Repositories
                         libro.isAvailable
                     });
 
-                    return rowsAffected > 0; // Returns true if at least one row is inserted
+                    return rowsAffected > 0; 
                 }
                 catch (SqlException sqlEx)
                 {
@@ -154,6 +153,54 @@ namespace BibliotecaAPI.Repositories
                 }
             }
         }
+
+        public bool DeleteLibro(string isbn)
+        {
+
+            using (var connection = _context.CreateConnection())
+            {
+                try
+                {
+                    connection.Open();
+                    using (var transaction = connection.BeginTransaction())
+                    {
+                        try
+                        {
+                            
+                            var deletePrestamosSql = @"DELETE FROM Prestamos WHERE PrestamoISBN = @ISBN";
+                            connection.Execute(deletePrestamosSql, new { ISBN = isbn }, transaction);
+
+                            
+                            var deleteLibroSql = @"DELETE FROM Libros WHERE ISBN = @ISBN";
+                            var rowsAffected = connection.Execute(deleteLibroSql, new { ISBN = isbn }, transaction);
+
+                            transaction.Commit();
+
+                            return rowsAffected > 0;
+                        }
+                        catch (Exception ex)
+                        {
+                            transaction.Rollback();
+                            Console.WriteLine($"Error: {ex.Message}");
+                            throw new Exception("Error al eliminar el libro y sus dependencias.", ex);
+                        }
+                    }
+                }
+                catch (SqlException sqlEx)
+                {
+                    Console.WriteLine($"SQL Error: {sqlEx.Message}");
+                    throw new Exception("Ocurrió un error con la base de datos.", sqlEx);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error: {ex.Message}");
+                    throw new Exception("Ocurrió un error inesperado al eliminar el libro.", ex);
+                }
+            }
+
+
+        }
+
 
 
 

@@ -18,59 +18,6 @@ namespace BibliotecaAPI.Repositories
 
         public IEnumerable<Usuario> GetAllUsuarios()
         {
-            /*using (var connection = _context.CreateConnection())
-            {
-                try
-                {
-                    var sql = @"              
-                    SELECT
-                        u.ID AS UsuarioID,
-                        u.Nombre,
-                        u.TipoUsuario,
-                        p.PrestamoISBN,
-                        p.PrestamoUsuarioID
-
-                    FROM
-                        Usuarios u
-                    LEFT JOIN
-                        Prestamos p
-                    ON
-                        u.ID = p.PrestamoUsuarioId";
-                    var usuarioDictionary = new Dictionary<int, Usuario>();
-                    //var usuario = connection.Query<Usuario, List<Prestamo>, Usuario>(
-                    var usuario = connection.Query<Usuario, Prestamo, Usuario>(
-                        sql,
-                        (usuario, prestamo) =>
-                        {
-
-                            if (!usuarioDictionary.TryGetValue(usuario.ID, out var currentUsuario))
-                            {
-                                currentUsuario = usuario;
-                                currentUsuario.Prestamos = new List<Prestamo>();
-                                usuarioDictionary.Add(usuario.ID, currentUsuario);
-                            }
-
-                            if (prestamo != null)
-                            {
-                                //usuario.Prestamos = prestamo;
-                                //return usuario;
-                                currentUsuario.Prestamos.Add(prestamo);
-                            }
-
-                            return currentUsuario;
-                        },
-                        splitOn: "PrestamoISBN"
-                        );
-                    return usuarioDictionary.Values;
-                    //return usuario;
-                }
-                catch (Exception ex)
-                {
-
-                    Console.WriteLine(ex);
-                    return Enumerable.Empty<Usuario>();
-                }
-            }*/
 
             using (var connection = _context.CreateConnection())
             {
@@ -98,7 +45,6 @@ namespace BibliotecaAPI.Repositories
                 ON 
                     p.PrestamoISBN = l.ISBN";
                     var usuarioDictionary = new Dictionary<int, Usuario>();
-                    //var usuario = connection.Query<Usuario, List<Prestamo>, Usuario>(
                     var usuarios = connection.Query<Usuario, Prestamo, Libro, Usuario>(
                         sql,
                         (usuario, prestamo, libro) =>
@@ -113,15 +59,9 @@ namespace BibliotecaAPI.Repositories
                             {
                                 if (libro != null)
                                 {
-                                    prestamo.Libro = libro; // Assign Libro to Prestamo
+                                    prestamo.Libro = libro; 
                                 }
                                 currentUsuario.Prestamos.Add(prestamo);
-                                //usuario.Prestamos = prestamo;
-                                //return usuario;
-                                /*
-                                prestamo.Libro = libro;
-                                currentUsuario.Prestamos.Add(prestamo);
-                                 */
                             }
                             return currentUsuario;
                         },
@@ -147,12 +87,6 @@ namespace BibliotecaAPI.Repositories
                             VALUES (@Nombre, @TipoUsuario)";
                     var rowsAffected = connection.Execute(sql, usuario);
                     return rowsAffected > 0;
-                    /*
-                    if (rowsAffected == 0)
-                    {
-                        Console.WriteLine("no se insertaron registros para el producto");
-                    }
-                     */
                 }
                 catch (SqlException sqlEx)
                 {
@@ -179,6 +113,39 @@ namespace BibliotecaAPI.Repositories
                 return connection.QueryFirstOrDefault<Usuario>(sql, new { Id = id });
             }
         }
+
+        public bool DeleteUsuario(int usuarioId)
+        {
+            using (var connection = _context.CreateConnection())
+            {
+                connection.Open(); // Open the connection
+                using (var transaction = connection.BeginTransaction()) // Begin a transaction
+                {
+                    try
+                    {
+                       
+                        var deletePrestamosSql = @"DELETE FROM Prestamos WHERE PrestamoUsuarioID = @UsuarioID";
+                        connection.Execute(deletePrestamosSql, new { UsuarioID = usuarioId }, transaction);
+
+                       
+                        var deleteUsuarioSql = @"DELETE FROM Usuarios WHERE ID = @UsuarioID";
+                        var rowsAffected = connection.Execute(deleteUsuarioSql, new { UsuarioID = usuarioId }, transaction);
+
+                       
+                        transaction.Commit();
+
+                        return rowsAffected > 0; 
+                    }
+                    catch (Exception ex)
+                    {
+                        transaction.Rollback(); 
+                        Console.WriteLine($"Error: {ex.Message}");
+                        return false; 
+                    }
+                }
+            }
+        }
+
 
     }
 
